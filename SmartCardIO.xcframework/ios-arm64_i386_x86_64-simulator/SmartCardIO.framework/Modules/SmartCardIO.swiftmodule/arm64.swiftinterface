@@ -1,0 +1,163 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.5.1 (swiftlang-1300.0.31.4 clang-1300.0.29.6)
+// swift-module-flags: -target arm64-apple-ios9.0-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name SmartCardIO
+import Foundation
+@_exported import SmartCardIO
+import Swift
+import _Concurrency
+public protocol CardTerminal : AnyObject {
+  var name: Swift.String { get }
+  func connect(protocolString: Swift.String) throws -> SmartCardIO.Card
+  func isCardPresent() throws -> Swift.Bool
+  func waitForCardPresent(timeout: Swift.Int) throws -> Swift.Bool
+  func waitForCardAbsent(timeout: Swift.Int) throws -> Swift.Bool
+}
+public protocol CardTerminals : AnyObject {
+  func list() throws -> [SmartCardIO.CardTerminal]
+  func list(state: SmartCardIO.CardState) throws -> [SmartCardIO.CardTerminal]
+  func terminal(name: Swift.String) -> SmartCardIO.CardTerminal?
+  func waitForChange() throws
+  func waitForChange(timeout: Swift.Int) throws -> Swift.Bool
+}
+public enum CardState {
+  case all
+  case cardPresent
+  case cardAbsent
+  case cardInsertion
+  case cardRemoval
+  public static func == (a: SmartCardIO.CardState, b: SmartCardIO.CardState) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension SmartCardIO.CardTerminals {
+  public func list() throws -> [SmartCardIO.CardTerminal]
+  public func terminal(name: Swift.String) -> SmartCardIO.CardTerminal?
+  public func waitForChange() throws
+}
+public protocol Card : AnyObject {
+  var atr: SmartCardIO.ATR { get }
+  var activeProtocol: Swift.String { get }
+  func basicChannel() throws -> SmartCardIO.CardChannel
+  func openLogicalChannel() throws -> SmartCardIO.CardChannel
+  func beginExclusive() throws
+  func endExclusive() throws
+  func transmitControlCommand(controlCode: Swift.Int, command: [Swift.UInt8]) throws -> [Swift.UInt8]
+  func disconnect(reset: Swift.Bool) throws
+}
+final public class CommandAPDU {
+  final public var cla: Swift.UInt8 {
+    get
+  }
+  final public var ins: Swift.UInt8 {
+    get
+  }
+  final public var p1: Swift.UInt8 {
+    get
+  }
+  final public var p2: Swift.UInt8 {
+    get
+  }
+  final public var nc: Swift.Int {
+    get
+  }
+  final public var data: [Swift.UInt8] {
+    get
+  }
+  final public var ne: Swift.Int {
+    get
+  }
+  final public var bytes: [Swift.UInt8] {
+    get
+  }
+  public init(apdu: [Swift.UInt8]) throws
+  public init(apdu: [Swift.UInt8], apduOffset: Swift.Int, apduLength: Swift.Int) throws
+  public init(apdu: Foundation.Data) throws
+  convenience public init(cla: Swift.UInt8, ins: Swift.UInt8, p1: Swift.UInt8, p2: Swift.UInt8) throws
+  convenience public init(cla: Swift.UInt8, ins: Swift.UInt8, p1: Swift.UInt8, p2: Swift.UInt8, ne: Swift.Int) throws
+  convenience public init(cla: Swift.UInt8, ins: Swift.UInt8, p1: Swift.UInt8, p2: Swift.UInt8, data: [Swift.UInt8]) throws
+  convenience public init(cla: Swift.UInt8, ins: Swift.UInt8, p1: Swift.UInt8, p2: Swift.UInt8, data: [Swift.UInt8], dataOffset: Swift.Int, dataLength: Swift.Int) throws
+  convenience public init(cla: Swift.UInt8, ins: Swift.UInt8, p1: Swift.UInt8, p2: Swift.UInt8, data: [Swift.UInt8], ne: Swift.Int) throws
+  public init(cla: Swift.UInt8, ins: Swift.UInt8, p1: Swift.UInt8, p2: Swift.UInt8, data: [Swift.UInt8], dataOffset: Swift.Int, dataLength: Swift.Int, ne: Swift.Int) throws
+  @objc deinit
+}
+public protocol CardChannel : AnyObject {
+  var card: SmartCardIO.Card { get }
+  func channelNumber() throws -> Swift.UInt8
+  func transmit(apdu: SmartCardIO.CommandAPDU) throws -> SmartCardIO.ResponseAPDU
+  func transmit(buffer: [Swift.UInt8]) throws -> [Swift.UInt8]
+  func transmit(data: Foundation.Data) throws -> Foundation.Data
+  func close() throws
+}
+final public class ResponseAPDU {
+  final public var nr: Swift.Int {
+    get
+  }
+  final public var data: [Swift.UInt8] {
+    get
+  }
+  final public var sw1: Swift.UInt8 {
+    get
+  }
+  final public var sw2: Swift.UInt8 {
+    get
+  }
+  final public var sw: Swift.UInt16 {
+    get
+  }
+  final public var bytes: [Swift.UInt8] {
+    get
+  }
+  public init(apdu: [Swift.UInt8]) throws
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers final public class TerminalFactory {
+  final public let provider: SmartCardIO.Provider
+  final public let type: Swift.String
+  public static func shared(type: Swift.String, params: Any, provider: SmartCardIO.Provider) throws -> SmartCardIO.TerminalFactory
+  final public func terminals() -> SmartCardIO.CardTerminals
+  @objc deinit
+}
+open class Provider {
+  final public let name: Swift.String
+  final public let version: Swift.Double
+  final public let info: Swift.String
+  public init(name: Swift.String, version: Swift.Double, info: Swift.String)
+  public func put(key: Swift.String, value: Swift.String)
+  @objc deinit
+}
+extension SmartCardIO.Provider : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+public enum CardError : Swift.Error {
+  case illegalArgument(Swift.String)
+  case illegalState(Swift.String)
+  case noSuchAlgorithm(Swift.String)
+  case runTimeError(Swift.String)
+  case operationFailed(Swift.String)
+  case cardNotPresent(Swift.String)
+}
+extension SmartCardIO.CardError : Foundation.LocalizedError {
+  public var errorDescription: Swift.String? {
+    get
+  }
+}
+final public class ATR {
+  final public var bytes: [Swift.UInt8] {
+    get
+  }
+  final public var historicalBytes: [Swift.UInt8] {
+    get
+  }
+  public init(atr: [Swift.UInt8])
+  @objc deinit
+}
+public protocol TerminalFactorySpi : AnyObject {
+  init(parameter: Any) throws
+  func engineTerminals() -> SmartCardIO.CardTerminals
+}
+extension SmartCardIO.CardState : Swift.Equatable {}
+extension SmartCardIO.CardState : Swift.Hashable {}
